@@ -80,17 +80,6 @@ export default class BaseExperience {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
 
-    //Create base sphere
-    const sphereGeometry = new THREE.SphereGeometry(2.5);
-    const sphereMaterial = new THREE.MeshStandardMaterial({
-      color: new THREE.Color("white"),
-      side: THREE.DoubleSide,
-    });
-    const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-    sphere.castShadow = true;
-    sphere.receiveShadow = true;
-    // this.scene.add(sphere);
-
     //Create ambient light
     this.ambientLight = new THREE.AmbientLight(
       "white",
@@ -105,6 +94,7 @@ export default class BaseExperience {
     );
     this.pointLight.position.y = 5;
     this.pointLight.position.x = 5;
+    this.pointLight.position.z = 5;
     this.pointLight.castShadow = true;
     this.scene.add(this.pointLight);
 

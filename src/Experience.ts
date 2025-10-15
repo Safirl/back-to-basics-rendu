@@ -124,13 +124,13 @@ export default class Experience extends BaseExperience {
         )
         this.scene.add(tv)
 
-        // const planeGeometry = new THREE.PlaneGeometry(30, 30);
-        // const plane = new Object({ x: 0, y: -1.5, z: 0 }, { x: -Math.PI / 2, y: 0, z: 0 }, { x: 1, y: 1, z: 1 }, planeGeometry, .1)
-        // this.scene.add(plane)
+        const planeGeometry = new THREE.PlaneGeometry(30, 30);
+        const plane = new SceneObject({ x: 0, y: -1.5, z: 0 }, { x: -Math.PI / 2, y: 0, z: 0 }, { x: 1, y: 1, z: 1 }, planeGeometry, .1, this.material)
+        this.scene.add(plane)
 
-        // const wallGeometry = new THREE.PlaneGeometry(30, 30);
-        // const wall = new Object({ x: 0, y: 0, z: -5 }, { x: 0, y: 0, z: 0 }, { x: 1, y: 1, z: 1 }, wallGeometry, .1)
-        // this.scene.add(wall)
+        const wallGeometry = new THREE.PlaneGeometry(30, 30);
+        const wall = new SceneObject({ x: 0, y: 0, z: -5 }, { x: 0, y: 0, z: 0 }, { x: 1, y: 1, z: 1 }, wallGeometry, .1, this.material)
+        this.scene.add(wall)
 
         const lightGeometry = new THREE.BoxGeometry(.3, 8, .2, 128, 128);
         const light = new SceneObject({ x: -5, y: 0, z: 0 }, { x: 0, y: 0, z: 0 }, { x: 1, y: 1, z: 1 }, lightGeometry, .1, this.material)
