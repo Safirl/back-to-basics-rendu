@@ -13,9 +13,9 @@ export default class BaseExperience {
   declare renderer: THREE.WebGLRenderer;
   declare controls: OrbitControls;
   declare gui: GUI;
-  declare pointLight: THREE.PointLight
-  declare ambientLight: THREE.AmbientLight
-  declare eventEmitter: EventEmitter
+  declare pointLight: THREE.PointLight;
+  declare ambientLight: THREE.AmbientLight;
+  declare eventEmitter: EventEmitter;
 
   constructor() {
     this.eventEmitter = new EventEmitter();
@@ -32,7 +32,7 @@ export default class BaseExperience {
     //data ---------------------
 
     this.data = {
-      ambientLightIntensity: 1,
+      ambientLightIntensity: 0,
       pointLightIntensity: 10,
     };
 
@@ -100,9 +100,11 @@ export default class BaseExperience {
 
     //Animate Scene on frame
 
-    this.renderer.setAnimationLoop((time) => { this.tick(time) });
+    this.renderer.setAnimationLoop((time) => {
+      this.tick(time);
+    });
 
-    this.addGUI()
+    this.addGUI();
   }
 
   addGUI() {
@@ -116,14 +118,14 @@ export default class BaseExperience {
       .min(0)
       .max(20)
       .step(0.1)
-      .onChange(() => this.rebuildObjectsFromData())
+      .onChange(() => this.rebuildObjectsFromData());
 
     this.gui
       .add(this.data, "ambientLightIntensity")
       .min(0)
       .max(20)
       .step(0.1)
-      .onChange(() => this.rebuildObjectsFromData())
+      .onChange(() => this.rebuildObjectsFromData());
 
     // this.refreshGUI()
   }
@@ -132,10 +134,10 @@ export default class BaseExperience {
     this.pointLight.intensity = this.data.pointLightIntensity;
     this.ambientLight.intensity = this.data.ambientLightIntensity;
     // this.eventEmitter.emit("onGUIRebuild")
-  };
+  }
 
   tick(time: number) {
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
-  };
+  }
 }

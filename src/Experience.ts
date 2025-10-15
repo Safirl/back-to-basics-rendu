@@ -1,227 +1,296 @@
 import BaseExperience from "./BaseExperience";
 import SceneObject from "./object";
-import * as THREE from "three"
-import vertex from "./shaders/vertex.glsl"
-import frag from "./shaders/fragment.glsl"
+import * as THREE from "three";
+import vertex from "./shaders/vertex.glsl";
+import frag from "./shaders/fragment.glsl";
+import { GLTFLoader } from "three/examples/jsm/Addons.js";
+import { declaration, implementation } from "./shaders/fishEyeShader";
+import RessourceLoader from "./utils/ressourceLoader";
+import GLTFObject from "./gltfObject";
 
 export default class Experience extends BaseExperience {
-    declare objects: SceneObject[]
-    declare material: THREE.MeshPhysicalMaterial
-    declare uniforms: any
+  declare objects: SceneObject[];
+  declare GLTFObjects: GLTFObject[];
+  declare material: THREE.MeshPhysicalMaterial;
+  declare uniforms: any;
+  declare ressourceLoader: RessourceLoader;
 
-    constructor() {
-        super()
-    }
+  constructor() {
+    super();
+    this.ressourceLoader = new RessourceLoader();
+  }
 
-    createScene(): void {
-        super.createScene()
+  createScene(): void {
+    super.createScene();
 
-        // this.material = new THREE.ShaderMaterial({
-        //     vertexShader: vertex,
-        //     fragmentShader: frag,
-        //     uniforms: {
-        //         alpha: { value: this.data.animAlpha },
-        //         fishEyeDelta: { value: this.data.fishEyeDelta },
-        //         distanceFactor: { value: this.data.distanceFactor },
-        //         sceneDistance: { value: this.data.sceneDistance },
-        //         zoomFactor: { value: this.data.zoomFactor },
-        //         positionRef: { value: { x: 0, y: 2.5, z: 0 } },
-        //     }
-        // })
+    this.material = new THREE.MeshPhysicalMaterial({
+      color: 0xffffff,
+      metalness: 0.3,
+      roughness: 0.5,
+    });
 
-        this.material = new THREE.MeshPhysicalMaterial({
-            color: 0xffffff,
-            metalness: 0.3,
-            roughness: 0.5
-        })
+    this.uniforms = {
+      animAlpha: { value: this.data.animAlpha },
+      fishEyeDelta: { value: this.data.fishEyeDelta },
+      distanceFactor: { value: this.data.distanceFactor },
+      sceneDistance: { value: this.data.sceneDistance },
+      zoomFactor: { value: this.data.zoomFactor },
+      positionRef: { value: { x: 0.1, y: 1.7, z: 0 } },
+    };
 
-        this.uniforms = {
-            animAlpha: { value: this.data.animAlpha },
-            fishEyeDelta: { value: this.data.fishEyeDelta },
-            distanceFactor: { value: this.data.distanceFactor },
-            sceneDistance: { value: this.data.sceneDistance },
-            zoomFactor: { value: this.data.zoomFactor },
-            positionRef: { value: { x: 0, y: 2.5, z: 0 } },
-        }
+    this.material.onBeforeCompile = (shader) => {
+      // STEP 1: Add uniforms
+      const uniformsCopy = {
+        ...this.uniforms,
+        deformationFactor: { value: 1 },
+      };
+      Object.keys(uniformsCopy).forEach((key) => {
+        //@ts-ignore
+        shader.uniforms[key] = uniformsCopy[key];
+      });
 
-        this.material.onBeforeCompile = (shader) => {
-            // STEP 1: Add uniforms
-            Object.keys(this.uniforms).forEach(key => {
-                console.log(key)
-                //@ts-ignore
-                shader.uniforms[key] = this.uniforms[key];
-                // console.log(shader.uniforms)
-            });
+      // ======================================
+      // VERTEX SHADER
+      // ======================================
+      shader.vertexShader = shader.vertexShader.replace(
+        "void main() {",
+        declaration
+      );
 
-            // ======================================
-            // VERTEX SHADER
-            // ======================================
-            shader.vertexShader = shader.vertexShader.replace(
-                'void main() {',
-                `
-                    // === CUSTOM VERTEX DECLARATIONS ===
+      shader.vertexShader = shader.vertexShader.replace(
+        "#include <begin_vertex>",
+        implementation
+      );
+    };
 
-                    uniform float animAlpha;
-                    uniform float fishEyeDelta;
-                    uniform float distanceFactor;
-                    uniform float sceneDistance;
-                    uniform float zoomFactor;
-                    uniform vec3 positionRef;
+    this.objects = [];
+    this.GLTFObjects = [];
 
-                    varying vec2 dxy;
+    //Create objects
 
-                    float exponentialOut(float t) {
-                        return t == 1.0 ? t : 1.0 - pow(2.0, -10.0 * t);
-                    }
-
-                    void main() {`
-            )
-
-            shader.vertexShader = shader.vertexShader.replace(
-                '#include <begin_vertex>',
-                `
-                #include <begin_vertex>
-                 // Start with original position
-
-                //Get la world position
-                vec3 worldPos = (modelMatrix * vec4(position, 1.0)).xyz;
-                vec3 center = positionRef;
-
-                float dx = worldPos.x - center.x;
-                float dy = worldPos.y - center.y;
-                float distance = sqrt(dx*dx + dy*dy);
-                // distance = sqrt(  distance * distance ) ;
-                float angle = atan(dy, dx);
-                float factor = fishEyeDelta  + exponentialOut( distanceFactor * distance / sceneDistance ) * zoomFactor;
-                float xAlignement = cos(angle) * factor;// * exponentialOut( dy / 10. );
-                float yAlignement = sin(angle) * factor;// * ( abs( dy / dx ) );
-
-                dxy.x = dx;
-                dxy.y = dy;
-                transformed = vec3(transformed.x + xAlignement * animAlpha, transformed.y + yAlignement * animAlpha, transformed.z);
-                `
-            )
-        }
-
-        this.objects = []
-
-        //Create objects
-        const cabinetGeometry = new THREE.BoxGeometry(5, 3, 3);
-        const cabinet = new SceneObject({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 }, { x: 1, y: 1, z: 1 }, cabinetGeometry, .1, this.material)
-        cabinet.setEndTransform(
-            { x: .1, y: .2, z: 0 },
-            { x: 0, y: 0, z: Math.PI / 128 },
-            { x: 1, y: 1, z: 1 },
-        )
-        this.scene.add(cabinet)
-
-        const tvGeometry = new THREE.BoxGeometry(3, 2, 2, 10, 10, 10);
-        const tv = new SceneObject({ x: 0, y: 2.5, z: 0 }, { x: 0, y: 0, z: 0 }, { x: 1, y: 1, z: 1 }, tvGeometry, .1, this.material)
+    const tv = new GLTFObject(
+      { x: 0, y: 1.7, z: 0 },
+      { x: 0, y: 0, z: 0 },
+      { x: 1.5, y: 1.5, z: 1.5 },
+      "./models/tv.glb",
+      0.1,
+      this.uniforms,
+      () => {
         tv.setEndTransform(
-            { x: 0, y: 3, z: 0 },
-            { x: 0, y: 0, z: -Math.PI / 128 },
-            { x: 1, y: 1, z: 1 },
-        )
-        this.scene.add(tv)
+          { x: -0.2, y: 2.5, z: 0 },
+          { x: 0, y: 0, z: -Math.PI / 128 }, //-Math.PI / 128
+          { x: 1.5, y: 1.5, z: 1.5 }
+        );
+        this.scene.add(tv.root);
+      }
+    );
 
-        const planeGeometry = new THREE.PlaneGeometry(30, 30);
-        const plane = new SceneObject({ x: 0, y: -1.5, z: 0 }, { x: -Math.PI / 2, y: 0, z: 0 }, { x: 1, y: 1, z: 1 }, planeGeometry, .1, this.material)
-        this.scene.add(plane)
+    const cabinet = new GLTFObject(
+      { x: 0, y: -0.2, z: 0 },
+      { x: 0, y: 0, z: 0 },
+      { x: 1, y: 1, z: 1 },
+      "./models/cabinet.glb",
+      0.1,
+      this.uniforms,
+      () => {
+        cabinet.setEndTransform(
+          { x: 0.1, y: 0.2, z: 0 },
+          { x: 0, y: 0, z: Math.PI / 128 },
+          { x: 1, y: 1, z: 1 }
+        );
+        this.scene.add(cabinet.root);
+      }
+    );
 
-        const wallGeometry = new THREE.PlaneGeometry(30, 30);
-        const wall = new SceneObject({ x: 0, y: 0, z: -5 }, { x: 0, y: 0, z: 0 }, { x: 1, y: 1, z: 1 }, wallGeometry, .1, this.material)
-        this.scene.add(wall)
+    const planeGeometry = new THREE.PlaneGeometry(30, 30);
+    const plane = new SceneObject(
+      { x: 0, y: -1.5, z: 0 },
+      { x: -Math.PI / 2, y: 0, z: 0 },
+      { x: 1, y: 1, z: 1 },
+      planeGeometry,
+      0.1,
+      this.material
+    );
+    this.scene.add(plane);
 
-        const lightGeometry = new THREE.BoxGeometry(.3, 8, .2, 128, 128);
-        const light = new SceneObject({ x: -5, y: 0, z: 0 }, { x: 0, y: 0, z: 0 }, { x: 1, y: 1, z: 1 }, lightGeometry, .1, this.material)
-        light.setEndTransform(
-            { x: -5.5, y: .8, z: 0 },
-            { x: 0, y: 0, z: Math.PI / 128 },
-            { x: 1, y: 1, z: 1 },
-        )
-        this.scene.add(light)
+    const wallGeometry = new THREE.PlaneGeometry(30, 30);
+    const wall = new SceneObject(
+      { x: 0, y: 0, z: -5 },
+      { x: 0, y: 0, z: 0 },
+      { x: 1, y: 1, z: 1 },
+      wallGeometry,
+      0.1,
+      this.material
+    );
+    this.scene.add(wall);
 
-        const frameGeometry = new THREE.PlaneGeometry(2, 2.5, 20, 20);
-        const frame = new SceneObject({ x: 5, y: 4, z: 0 }, { x: 0, y: 0, z: 0 }, { x: 1, y: 1, z: 1 }, frameGeometry, .1, this.material)
+    // const lightGeometry = new THREE.BoxGeometry(0.3, 8, 0.2, 128, 128);
+    // const light = new SceneObject(
+    //   { x: -5, y: 0, z: 0 },
+    //   { x: 0, y: 0, z: 0 },
+    //   { x: 1, y: 1, z: 1 },
+    //   lightGeometry,
+    //   0.1,
+    //   this.material
+    // );
+    // light.setEndTransform(
+    //   { x: -5.5, y: 0.8, z: 0 },
+    //   { x: 0, y: 0, z: Math.PI / 128 },
+    //   { x: 1, y: 1, z: 1 }
+    // );
+    // this.scene.add(light);
+
+    const lamp = new GLTFObject(
+      { x: -5, y: -1.5, z: 0 },
+      { x: 0, y: 0, z: 0 },
+      { x: 0.7, y: 0.7, z: 0.7 },
+      "./models/lamp.glb",
+      0.1,
+      this.uniforms,
+      () => {
+        lamp.setEndTransform(
+          { x: -5.5, y: -1, z: 0 },
+          { x: 0, y: 0, z: Math.PI / 128 },
+          { x: 1, y: 1, z: 1 }
+        );
+        this.scene.add(lamp.root);
+      },
+      100
+    );
+
+    // const frameGeometry = new THREE.PlaneGeometry(2, 2.5, 20, 20);
+    // const frame = new SceneObject(
+    //   { x: 5, y: 4, z: 0 },
+    //   { x: 0, y: 0, z: 0 },
+    //   { x: 1, y: 1, z: 1 },
+    //   frameGeometry,
+    //   0.1,
+    //   this.material
+    // );
+    // frame.setEndTransform(
+    //   { x: 5, y: 4, z: 0 },
+    //   { x: Math.PI / 128, y: 0, z: Math.PI / 100 },
+    //   { x: 1, y: 1, z: 1 }
+    // );
+    // this.scene.add(frame);
+
+    const frame = new GLTFObject(
+      { x: 5, y: 4, z: 0 },
+      { x: 0, y: 0, z: 0 },
+      { x: 0.1, y: 0.1, z: 0.1 },
+      "./models/frame.glb",
+      0.1,
+      this.uniforms,
+      () => {
         frame.setEndTransform(
-            { x: 5, y: 4, z: 0 },
-            { x: Math.PI / 128, y: 0, z: Math.PI / 100 },
-            { x: 1, y: 1, z: 1 },
-        )
-        this.scene.add(frame)
+          { x: 5, y: 4, z: 0 },
+          { x: Math.PI / 128, y: 0, z: Math.PI / 100 },
+          { x: 0.1, y: 0.1, z: 0.1 }
+        );
+        this.scene.add(frame.root);
+      }
+    );
 
-        const potGeometry = new THREE.CylinderGeometry(.3, .25, .5);
-        const pot = new SceneObject({ x: 2, y: 1.5 + .25, z: 1.1 }, { x: 0, y: 0, z: 0 }, { x: 1, y: 1, z: 1 }, potGeometry, .1, this.material)
+    // const potGeometry = new THREE.CylinderGeometry(0.3, 0.25, 0.5);
+    // const pot = new SceneObject(
+    //   { x: 2, y: 1.5 + 0.25, z: 1.1 },
+    //   { x: 0, y: 0, z: 0 },
+    //   { x: 1, y: 1, z: 1 },
+    //   potGeometry,
+    //   0.1,
+    //   this.material
+    // );
+    // pot.setEndTransform(
+    //   { x: 2.5, y: 3.5, z: 1.1 },
+    //   { x: 0, y: 0, z: Math.PI / 12 },
+    //   { x: 1, y: 1, z: 1 }
+    // );
+    // this.scene.add(pot);
+
+    const pot = new GLTFObject(
+      { x: 2, y: 1, z: 0.8 },
+      { x: 0, y: 0, z: 0 },
+      { x: 1, y: 1, z: 1 },
+      "./models/pot.glb",
+      0.1,
+      this.uniforms,
+      () => {
         pot.setEndTransform(
-            { x: 2.5, y: 3.5, z: 1.1 },
-            { x: 0, y: 0, z: Math.PI / 12 },
-            { x: 1, y: 1, z: 1 },
-        )
-        this.scene.add(pot)
+          { x: 2, y: 3, z: 0.8 },
+          { x: 0, y: 0, z: Math.PI / 128 },
+          { x: 1, y: 1, z: 1 }
+        );
+        this.scene.add(pot.root);
+      }
+    );
 
-        this.objects.push(cabinet, tv, /*plane, wall,*/ light, frame, pot)
-    }
+    this.objects.push(/*plane, wall,*/);
+    this.GLTFObjects.push(tv, cabinet, pot, frame);
+  }
 
-    addGUI(): void {
-        this.data = {
-            ...this.data,
-            animAlpha: 1.,
-            fishEyeDelta: 0.,
-            distanceFactor: 1.,
-            sceneDistance: 10.,
-            zoomFactor: 5.,
-        }
+  addGUI(): void {
+    this.data = {
+      ...this.data,
+      animAlpha: 0,
+      fishEyeDelta: 0,
+      distanceFactor: 1,
+      sceneDistance: 10,
+      zoomFactor: 1.6,
+    };
 
-        super.addGUI()
-        this.gui
-            .add(this.data, "animAlpha")
-            .min(0)
-            .max(1)
-            .step(0.01)
-            .onChange(() => this.rebuildObjectsFromData())
+    super.addGUI();
+    this.gui
+      .add(this.data, "animAlpha")
+      .min(0)
+      .max(1)
+      .step(0.01)
+      .onChange(() => this.rebuildObjectsFromData());
 
-        this.gui
-            .add(this.data, "fishEyeDelta")
-            .min(0)
-            .max(5)
-            .step(0.1)
-            .onChange(() => this.rebuildObjectsFromData())
+    this.gui
+      .add(this.data, "fishEyeDelta")
+      .min(0)
+      .max(5)
+      .step(0.1)
+      .onChange(() => this.rebuildObjectsFromData());
 
-        this.gui
-            .add(this.data, "distanceFactor")
-            .min(0)
-            .max(1)
-            .step(0.01)
-            .onChange(() => this.rebuildObjectsFromData())
+    this.gui
+      .add(this.data, "distanceFactor")
+      .min(0)
+      .max(1)
+      .step(0.01)
+      .onChange(() => this.rebuildObjectsFromData());
 
-        this.gui
-            .add(this.data, "sceneDistance")
-            .min(0)
-            .max(100)
-            .step(0.1)
-            .onChange(() => this.rebuildObjectsFromData())
+    this.gui
+      .add(this.data, "sceneDistance")
+      .min(0)
+      .max(100)
+      .step(0.1)
+      .onChange(() => this.rebuildObjectsFromData());
 
-        this.gui
-            .add(this.data, "zoomFactor")
-            .min(-10)
-            .max(20)
-            .step(0.1)
-            .onChange(() => this.rebuildObjectsFromData())
-    }
+    this.gui
+      .add(this.data, "zoomFactor")
+      .min(-10)
+      .max(20)
+      .step(0.1)
+      .onChange(() => this.rebuildObjectsFromData());
+  }
 
-    rebuildObjectsFromData(): void {
-        super.rebuildObjectsFromData()
-        this.uniforms.animAlpha.value = this.data.animAlpha
-        this.uniforms.fishEyeDelta.value = this.data.fishEyeDelta
-        this.uniforms.distanceFactor.value = this.data.distanceFactor
-        this.uniforms.sceneDistance.value = this.data.sceneDistance
-        this.uniforms.zoomFactor.value = this.data.zoomFactor
-    }
+  rebuildObjectsFromData(): void {
+    super.rebuildObjectsFromData();
+    this.uniforms.animAlpha.value = this.data.animAlpha;
+    this.uniforms.fishEyeDelta.value = this.data.fishEyeDelta;
+    this.uniforms.distanceFactor.value = this.data.distanceFactor;
+    this.uniforms.sceneDistance.value = this.data.sceneDistance;
+    this.uniforms.zoomFactor.value = this.data.zoomFactor;
+  }
 
-    tick(time: number): void {
-        this.objects.forEach(object => {
-            object.animate(this.data.animAlpha);
-        });
-        super.tick(time)
-    }
+  tick(time: number): void {
+    this.objects.forEach((object) => {
+      object.animate(this.data.animAlpha);
+    });
+    this.GLTFObjects.forEach((object) => {
+      object.animate(this.data.animAlpha);
+    });
+    super.tick(time);
+  }
 }

@@ -36,19 +36,19 @@ void main() {
     
     gl_Position = projectionMatrix * modelViewMatrix * vec4( newPos, 1.0 );
 
-    //Get la world position
-    vec3 worldPos = (modelMatrix * vec4(position, 1.0)).xyz;
-    vec3 center = positionRef;
+    // //Get la world position
+    // vec3 worldPos = (modelMatrix * vec4(position, 1.0)).xyz;
+    // vec3 center = positionRef;
 
-    float dx = worldPos.x - center.x;
-    float dy = worldPos.y - center.y;
-    float distance = sqrt(dx*dx + dy*dy);
-    // distance = sqrt(  distance * distance ) ;
-    float angle = atan(dy, dx);
-    float factor = fishEyeDelta  + exponentialOut( distanceFactor * distance / sceneDistance ) * zoomFactor;
-    float xAlignement = cos(angle) * factor;// * exponentialOut( dy / 10. );
-    float yAlignement = sin(angle) * factor;// * ( abs( dy / dx ) );
+    // float dx = worldPos.x - center.x;
+    // float dy = worldPos.y - center.y;
+    // float distance = sqrt(dx*dx + dy*dy);
+    // // distance = sqrt(  distance * distance ) ;
+    // float angle = atan(dy, dx);
+    // float factor = fishEyeDelta  + exponentialOut( distanceFactor * distance / sceneDistance ) * zoomFactor;
+    // float xAlignement = cos(angle) * factor;// * exponentialOut( dy / 10. );
+    // float yAlignement = sin(angle) * factor;// * ( abs( dy / dx ) );
 
-    dxy.x = dx;
-    dxy.y = dy;
+    // dxy.x = dx;
+    // dxy.y = dy;
 }
