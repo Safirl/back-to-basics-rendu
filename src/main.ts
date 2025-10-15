@@ -1,4 +1,4 @@
-import BaseExperience from "./BaseExperience";
+import Experience from "./Experience";
 
-const base = new BaseExperience();
-base.createScene();
+const experience = new Experience()
+experience.createScene();

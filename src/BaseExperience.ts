@@ -2,6 +2,7 @@ import "./style.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
 import GUI from "lil-gui";
+import { EventEmitter } from "./utils/EventEmitter";
 
 export default class BaseExperience {
   declare canvas: HTMLCanvasElement;
@@ -12,8 +13,13 @@ export default class BaseExperience {
   declare renderer: THREE.WebGLRenderer;
   declare controls: OrbitControls;
   declare gui: GUI;
+  declare pointLight: THREE.PointLight
+  declare ambientLight: THREE.AmbientLight
+  declare eventEmitter: EventEmitter
 
-  constructor() {}
+  constructor() {
+    this.eventEmitter = new EventEmitter();
+  }
 
   createScene() {
     this.canvas = document.querySelector("canvas.webgl") as HTMLCanvasElement;
@@ -26,7 +32,7 @@ export default class BaseExperience {
     //data ---------------------
 
     this.data = {
-      ambientLightIntensity: 0.1,
+      ambientLightIntensity: 1,
       pointLightIntensity: 10,
     };
 
@@ -83,54 +89,62 @@ export default class BaseExperience {
     const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
     sphere.castShadow = true;
     sphere.receiveShadow = true;
-    this.scene.add(sphere);
+    // this.scene.add(sphere);
 
     //Create ambient light
-    const ambientLight = new THREE.AmbientLight(
+    this.ambientLight = new THREE.AmbientLight(
       "white",
       this.data.ambientLightIntensity
     );
-    this.scene.add(ambientLight);
+    this.scene.add(this.ambientLight);
 
     //Create a point light
-    const pointLight = new THREE.PointLight(
+    this.pointLight = new THREE.PointLight(
       "white",
       this.data.pointLightIntensity
     );
-    pointLight.position.y = 5;
-    pointLight.position.x = 5;
-    pointLight.castShadow = true;
-    this.scene.add(pointLight);
+    this.pointLight.position.y = 5;
+    this.pointLight.position.x = 5;
+    this.pointLight.castShadow = true;
+    this.scene.add(this.pointLight);
 
     //Animate Scene on frame
 
-    this.renderer.setAnimationLoop(this.tick);
+    this.renderer.setAnimationLoop((time) => { this.tick(time) });
 
+    this.addGUI()
+  }
+
+  addGUI() {
     //GUI -----------------------------------
 
     //Rebuild light from GUI parameters
-    const rebuildLight = () => {
-      pointLight.intensity = this.data.pointLightIntensity;
-      ambientLight.intensity = this.data.ambientLightIntensity;
-    };
 
-    const gui = new GUI();
-
-    gui
-      .add(this.data, "ambientLightIntensity")
-      .min(0)
-      .max(10)
-      .step(0.1)
-      .onChange(rebuildLight);
-    gui
+    this.gui = new GUI();
+    this.gui
       .add(this.data, "pointLightIntensity")
       .min(0)
       .max(20)
       .step(0.1)
-      .onChange(rebuildLight);
+      .onChange(() => this.rebuildObjectsFromData())
+
+    this.gui
+      .add(this.data, "ambientLightIntensity")
+      .min(0)
+      .max(20)
+      .step(0.1)
+      .onChange(() => this.rebuildObjectsFromData())
+
+    // this.refreshGUI()
   }
 
-  tick = (time: number) => {
+  rebuildObjectsFromData() {
+    this.pointLight.intensity = this.data.pointLightIntensity;
+    this.ambientLight.intensity = this.data.ambientLightIntensity;
+    // this.eventEmitter.emit("onGUIRebuild")
+  };
+
+  tick(time: number) {
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
   };
