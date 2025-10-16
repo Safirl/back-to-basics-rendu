@@ -1,4 +1,6 @@
 import Experience from "./Experience";
+import SequenceManager from "./sequenceManager";
 
-const experience = new Experience()
-experience.createScene();
+const sequenceManager = new SequenceManager();
+
+sequenceManager.startExperience();

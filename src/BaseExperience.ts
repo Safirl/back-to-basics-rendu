@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
 import GUI from "lil-gui";
 import { EventEmitter } from "./utils/EventEmitter";
+import LightManager from "./LightManager";
 
 export default class BaseExperience {
   declare canvas: HTMLCanvasElement;
@@ -15,10 +16,9 @@ export default class BaseExperience {
   declare gui: GUI;
   declare pointLight: THREE.PointLight;
   declare ambientLight: THREE.AmbientLight;
-  declare eventEmitter: EventEmitter;
+  declare lightManager: LightManager
 
   constructor() {
-    this.eventEmitter = new EventEmitter();
   }
 
   createScene() {
@@ -32,8 +32,8 @@ export default class BaseExperience {
     //data ---------------------
 
     this.data = {
-      ambientLightIntensity: 0,
-      pointLightIntensity: 10,
+      ambientLightIntensity: .2,
+      enableOrbit: false
     };
 
     //Set sizes (override for custom size)
@@ -62,12 +62,12 @@ export default class BaseExperience {
     //Init scene, renderer and handle resize
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(
-      75,
+      100,
       this.sizes.width / this.sizes.height,
       0.1,
       1000
     );
-    this.camera.position.set(0, 0, 10);
+    this.camera.position.set(0, 2, 6);
 
     //@ts-ignore
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas });
@@ -77,26 +77,31 @@ export default class BaseExperience {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     //Create orbit controls
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.enableDamping = true;
+    if (this.data.enableOrbit) {
+      this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+      this.controls.enableDamping = true;
+    }
 
     //Create ambient light
     this.ambientLight = new THREE.AmbientLight(
-      "white",
+      "#ffc25b",
       this.data.ambientLightIntensity
     );
     this.scene.add(this.ambientLight);
 
     //Create a point light
-    this.pointLight = new THREE.PointLight(
-      "white",
-      this.data.pointLightIntensity
-    );
-    this.pointLight.position.y = 5;
-    this.pointLight.position.x = 5;
-    this.pointLight.position.z = 5;
-    this.pointLight.castShadow = true;
-    this.scene.add(this.pointLight);
+    // this.pointLight = new THREE.PointLight(
+    //   "#ffc25b",
+    //   this.data.pointLightIntensity
+    // );
+    // // x: -5, y: -1.5, z: 0
+    // this.pointLight.position.y = 5;
+    // this.pointLight.position.x = -5;
+    // this.pointLight.position.z = 0;
+    // this.pointLight.castShadow = true;
+    // this.scene.add(this.pointLight);
+
+    this.lightManager = new LightManager(this.scene);
 
     //Animate Scene on frame
 
@@ -113,12 +118,6 @@ export default class BaseExperience {
     //Rebuild light from GUI parameters
 
     this.gui = new GUI();
-    this.gui
-      .add(this.data, "pointLightIntensity")
-      .min(0)
-      .max(20)
-      .step(0.1)
-      .onChange(() => this.rebuildObjectsFromData());
 
     this.gui
       .add(this.data, "ambientLightIntensity")
@@ -127,17 +126,30 @@ export default class BaseExperience {
       .step(0.1)
       .onChange(() => this.rebuildObjectsFromData());
 
+    this.gui
+      .add(this.data, "enableOrbit")
+      .onChange(() => this.rebuildObjectsFromData());
+
     // this.refreshGUI()
   }
 
   rebuildObjectsFromData() {
-    this.pointLight.intensity = this.data.pointLightIntensity;
+    // this.pointLight.intensity = this.data.pointLightIntensity;
     this.ambientLight.intensity = this.data.ambientLightIntensity;
+    if (this.data.enableOrbit) {
+      this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+      this.controls.enableDamping = true;
+    }
+    else {
+      this.controls = null
+    }
     // this.eventEmitter.emit("onGUIRebuild")
   }
 
   tick(time: number) {
-    this.controls.update();
+    if (this.data.enableOrbit) {
+      this.controls.update();
+    }
     this.renderer.render(this.scene, this.camera);
   }
 }

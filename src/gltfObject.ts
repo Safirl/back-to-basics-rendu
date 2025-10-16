@@ -56,24 +56,16 @@ export default class GLTFObject {
     }
     RL.loadObject(GLTFPath, (gltf) => {
       this.root = gltf.scene;
-      this.root.position.x = this.startPosition.x;
-      this.root.position.y = this.startPosition.y;
-      this.root.position.z = this.startPosition.z;
-      this.root.rotation.x = this.startRotation.x;
-      this.root.rotation.y = this.startRotation.y;
-      this.root.rotation.z = this.startRotation.z;
-      this.root.scale.x = this.startScale.x;
-      this.root.scale.y = this.startScale.y;
-      this.root.scale.z = this.startScale.z;
       gltf.scene.traverse((child) => {
         if (child.isMesh && child.material) {
-          child.material.wireframe = true;
+          child.castShadow = true;
+          child.receiveShadow = true;
+          child.material.wireframe = false;
           child.material.onBeforeCompile = (shader) => {
             const uniformsCopy = {
               ...uniforms,
               deformationFactor: { value: deformationFactor },
             };
-            console.log(uniformsCopy);
             Object.keys(uniformsCopy).forEach((key) => {
               //@ts-ignore
               shader.uniforms[key] = uniformsCopy[key];
@@ -98,7 +90,7 @@ export default class GLTFObject {
           };
         }
       });
-      onLoaded();
+      this.onLoaded(onLoaded);
     });
   }
 
@@ -112,7 +104,7 @@ export default class GLTFObject {
     this.endScale = scale;
   }
 
-  animate = (alpha: number) => {
+  animate(alpha: number) {
     if (!this.root) return;
     this.root.position.x = lerp(
       this.startPosition.x,
@@ -151,5 +143,9 @@ export default class GLTFObject {
 
   destroy() {
     // this.geometry.dispose();
+  }
+
+  onLoaded(onLoaded: () => void) {
+    onLoaded()
   }
 }
