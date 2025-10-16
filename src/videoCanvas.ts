@@ -12,8 +12,9 @@ export default class VideoCanvas {
   declare boundChangeChannel: () => void;
   declare boundEndScene: () => void;
 
-  constructor(uniforms) {
+  constructor(uniforms: any) {
     this.currentId = -1;
+    //@ts-ignore
     this.ctx = document.getElementById("video")?.getContext("2d");
     if (!this.ctx) {
       console.error("no canvas found for the video");
@@ -66,6 +67,7 @@ export default class VideoCanvas {
     this.boundChangeChannel = this.changeVideo.bind(this);
     this.boundEndScene = this.endScene.bind(this);
 
+    //@ts-ignore
     const emitter: EventEmitter = window.eventEmitter;
     emitter.on("onChangeChannel", this.boundChangeChannel);
   }
@@ -91,6 +93,7 @@ export default class VideoCanvas {
     }
     this.video.src = videoData[this.currentId];
     if (this.video.src.includes("eye")) {
+      //@ts-ignore
       const eventEmitter: EventEmitter = window.eventEmitter;
       eventEmitter.emit("onEyePlayed");
     }

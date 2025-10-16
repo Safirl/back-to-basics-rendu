@@ -14,6 +14,7 @@ export default class SoundManager {
     this.currentSFX = new THREE.Audio(this.listener);
     this.currentMusic = new THREE.Audio(this.listener);
     this.audioLoader = new THREE.AudioLoader();
+    //@ts-ignore
     const emitter: EventEmitter = window.eventEmitter;
     emitter.on("introStarted", () => {
       this.playIntro();

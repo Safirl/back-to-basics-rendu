@@ -50,17 +50,21 @@ export default class GLTFObject {
 
     this.friction = friction;
 
+    //@ts-ignore
     const RL: RessourceLoader = window.ressourceLoader;
     if (!RL) {
       console.error("No ressource loader found");
     }
+    //@ts-ignore
     RL.loadObject(GLTFPath, (gltf) => {
       this.root = gltf.scene;
+      //@ts-ignore
       gltf.scene.traverse((child) => {
         if (child.isMesh && child.material) {
           child.castShadow = true;
           child.receiveShadow = true;
           child.material.wireframe = false;
+          //@ts-ignore
           child.material.onBeforeCompile = (shader) => {
             const uniformsCopy = {
               ...uniforms,
@@ -139,13 +143,13 @@ export default class GLTFObject {
     this.root.scale.x = lerp(this.startScale.x, this.endScale.x, alpha);
     this.root.scale.y = lerp(this.startScale.y, this.endScale.y, alpha);
     this.root.scale.z = lerp(this.startScale.z, this.endScale.z, alpha);
-  };
+  }
 
   destroy() {
     // this.geometry.dispose();
   }
 
   onLoaded(onLoaded: () => void) {
-    onLoaded()
+    onLoaded();
   }
 }

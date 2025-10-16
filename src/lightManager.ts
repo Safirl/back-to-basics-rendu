@@ -8,7 +8,7 @@ export default class LightManager {
   declare lights: THREE.Light[];
   declare ambientLight: THREE.AmbientLight;
 
-  constructor(scene: THREE.Scene, data) {
+  constructor(scene: THREE.Scene, data: any) {
     this.scene = scene;
     this.lights = [];
     pointLights.forEach((light) => {
@@ -65,6 +65,7 @@ export default class LightManager {
 
   switchLightOn() {
     setTimeout(() => {
+      //@ts-ignore
       const eventEmitter: EventEmitter = window.eventEmitter;
       eventEmitter.emit("onLightToggled");
       this.lights[0].intensity = pointLights[0].intensity;
@@ -79,7 +80,7 @@ export default class LightManager {
     }, (Math.random() + 0.2) * 1000);
   }
 
-  rebuildLights(data) {
+  rebuildLights(data: any) {
     this.ambientLight.intensity = data.ambientLightIntensity;
   }
 }

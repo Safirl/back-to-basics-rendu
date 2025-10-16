@@ -277,7 +277,7 @@ export default class Experience extends BaseExperience {
     this.lightManager.rebuildLights(this.data);
   }
 
-  tick(time: number): void {
+  tick(): void {
     if (this.data.animAlpha <= 1) {
       this.objects.forEach((object) => {
         object.animate(this.data.animAlpha);
@@ -287,7 +287,7 @@ export default class Experience extends BaseExperience {
       });
       this.lightManager.animate(this.data.animAlpha);
     }
-    super.tick(time);
+    super.tick();
   }
 
   endScene() {

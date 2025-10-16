@@ -2,15 +2,14 @@ import "./style.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
 import GUI from "lil-gui";
-import { EventEmitter } from "./utils/EventEmitter";
 import LightManager from "./lightManager";
 import SoundManager from "./soundManager";
 
 export default class BaseExperience {
   declare canvas: HTMLCanvasElement;
   declare scene: THREE.Scene;
-  declare sizes;
-  declare data;
+  declare sizes: any;
+  declare data: any;
   declare camera: THREE.PerspectiveCamera;
   declare renderer: THREE.WebGLRenderer;
   declare controls: OrbitControls;
@@ -102,8 +101,8 @@ export default class BaseExperience {
 
     //Animate Scene on frame
 
-    this.renderer.setAnimationLoop((time) => {
-      this.tick(time);
+    this.renderer.setAnimationLoop(() => {
+      this.tick();
     });
 
     this.addGUI();
@@ -136,12 +135,13 @@ export default class BaseExperience {
       this.controls = new OrbitControls(this.camera, this.renderer.domElement);
       this.controls.enableDamping = true;
     } else {
+      //@ts-ignore
       this.controls = null;
     }
     // this.eventEmitter.emit("onGUIRebuild")
   }
 
-  tick(time: number) {
+  tick() {
     if (this.data.enableOrbit) {
       this.controls.update();
     }
