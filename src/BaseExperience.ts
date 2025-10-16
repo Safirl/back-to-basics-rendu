@@ -3,7 +3,8 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
 import GUI from "lil-gui";
 import { EventEmitter } from "./utils/EventEmitter";
-import LightManager from "./LightManager";
+import LightManager from "./lightManager";
+import SoundManager from "./soundManager";
 
 export default class BaseExperience {
   declare canvas: HTMLCanvasElement;
@@ -15,11 +16,10 @@ export default class BaseExperience {
   declare controls: OrbitControls;
   declare gui: GUI;
   declare pointLight: THREE.PointLight;
-  declare ambientLight: THREE.AmbientLight;
-  declare lightManager: LightManager
+  declare lightManager: LightManager;
+  declare soundManager: SoundManager;
 
-  constructor() {
-  }
+  constructor() {}
 
   createScene() {
     this.canvas = document.querySelector("canvas.webgl") as HTMLCanvasElement;
@@ -32,8 +32,8 @@ export default class BaseExperience {
     //data ---------------------
 
     this.data = {
-      ambientLightIntensity: .2,
-      enableOrbit: false
+      ambientLightIntensity: 0.2,
+      enableOrbit: false,
     };
 
     //Set sizes (override for custom size)
@@ -83,11 +83,6 @@ export default class BaseExperience {
     }
 
     //Create ambient light
-    this.ambientLight = new THREE.AmbientLight(
-      "#ffc25b",
-      this.data.ambientLightIntensity
-    );
-    this.scene.add(this.ambientLight);
 
     //Create a point light
     // this.pointLight = new THREE.PointLight(
@@ -101,7 +96,9 @@ export default class BaseExperience {
     // this.pointLight.castShadow = true;
     // this.scene.add(this.pointLight);
 
-    this.lightManager = new LightManager(this.scene);
+    this.lightManager = new LightManager(this.scene, this.data);
+    this.soundManager = new SoundManager();
+    this.camera.add(this.soundManager.listener);
 
     //Animate Scene on frame
 
@@ -135,13 +132,11 @@ export default class BaseExperience {
 
   rebuildObjectsFromData() {
     // this.pointLight.intensity = this.data.pointLightIntensity;
-    this.ambientLight.intensity = this.data.ambientLightIntensity;
     if (this.data.enableOrbit) {
       this.controls = new OrbitControls(this.camera, this.renderer.domElement);
       this.controls.enableDamping = true;
-    }
-    else {
-      this.controls = null
+    } else {
+      this.controls = null;
     }
     // this.eventEmitter.emit("onGUIRebuild")
   }

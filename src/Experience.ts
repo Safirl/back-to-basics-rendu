@@ -12,7 +12,7 @@ export default class Experience extends BaseExperience {
   declare GLTFObjects: GLTFObject[];
   declare uniforms: any;
   declare ressourceLoader: RessourceLoader;
-  declare tvScreen: VideoCanvas
+  declare tvScreen: VideoCanvas;
 
   constructor() {
     super();
@@ -22,10 +22,10 @@ export default class Experience extends BaseExperience {
   createScene(): void {
     super.createScene();
 
-    const textureLoader = new THREE.TextureLoader()
-    const wallNormal = textureLoader.load("./textures/wall_nor.jpg")
-    const wallArm = textureLoader.load("./textures/wall_arm.jpg")
-    const wallMap = textureLoader.load("./textures/wall_diff.jpg")
+    const textureLoader = new THREE.TextureLoader();
+    const wallNormal = textureLoader.load("./textures/wall_nor.jpg");
+    const wallArm = textureLoader.load("./textures/wall_arm.jpg");
+    const wallMap = textureLoader.load("./textures/wall_diff.jpg");
 
     const wallMaterial = new THREE.MeshPhysicalMaterial({
       map: wallMap,
@@ -35,9 +35,9 @@ export default class Experience extends BaseExperience {
       roughnessMap: wallArm,
     });
 
-    const floorNormal = textureLoader.load("./textures/floor_nor.jpg")
-    const floorArm = textureLoader.load("./textures/floor_arm.jpg")
-    const floorMap = textureLoader.load("./textures/floor_diff.jpg")
+    const floorNormal = textureLoader.load("./textures/floor_nor.jpg");
+    const floorArm = textureLoader.load("./textures/floor_arm.jpg");
+    const floorMap = textureLoader.load("./textures/floor_diff.jpg");
 
     const floorMaterial = new THREE.MeshPhysicalMaterial({
       map: floorMap,
@@ -47,16 +47,16 @@ export default class Experience extends BaseExperience {
       roughnessMap: floorArm,
     });
 
-    floorArm.wrapS = THREE.RepeatWrapping
-    floorArm.wrapT = THREE.RepeatWrapping
-    floorMap.wrapS = THREE.RepeatWrapping
-    floorMap.wrapT = THREE.RepeatWrapping
-    floorNormal.wrapS = THREE.RepeatWrapping
-    floorNormal.wrapT = THREE.RepeatWrapping
+    floorArm.wrapS = THREE.RepeatWrapping;
+    floorArm.wrapT = THREE.RepeatWrapping;
+    floorMap.wrapS = THREE.RepeatWrapping;
+    floorMap.wrapT = THREE.RepeatWrapping;
+    floorNormal.wrapS = THREE.RepeatWrapping;
+    floorNormal.wrapT = THREE.RepeatWrapping;
 
-    floorArm.repeat.set(10, 10)
-    floorMap.repeat.set(10, 10)
-    floorNormal.repeat.set(10, 10)
+    floorArm.repeat.set(10, 10);
+    floorMap.repeat.set(10, 10);
+    floorNormal.repeat.set(10, 10);
 
     this.uniforms = {
       animAlpha: { value: this.data.animAlpha },
@@ -98,7 +98,7 @@ export default class Experience extends BaseExperience {
     //Create objects
 
     const tv = new Tv(
-      { x: -.22, y: 1.5, z: .7 },
+      { x: -0.22, y: 1.5, z: 0.7 },
       { x: 0, y: Math.PI, z: 0 },
       { x: 1.2, y: 1.2, z: 1.2 },
       "./models/tv.glb",
@@ -106,7 +106,7 @@ export default class Experience extends BaseExperience {
       this.uniforms,
       () => {
         tv.setEndTransform(
-          { x: -0.2, y: 2.5, z: .7 },
+          { x: -0.2, y: 2.5, z: 0.7 },
           { x: 0, y: Math.PI, z: -Math.PI / 128 }, //-Math.PI / 128
           { x: 1.2, y: 1.2, z: 1.2 }
         );
@@ -263,21 +263,26 @@ export default class Experience extends BaseExperience {
     this.uniforms.distanceFactor.value = this.data.distanceFactor;
     this.uniforms.sceneDistance.value = this.data.sceneDistance;
     this.uniforms.zoomFactor.value = this.data.zoomFactor;
+    this.lightManager.rebuildLights(this.data);
   }
 
   tick(time: number): void {
-    this.objects.forEach((object) => {
-      object.animate(this.data.animAlpha);
-    });
-    this.GLTFObjects.forEach((object) => {
-      object.animate(this.data.animAlpha);
-    });
-    this.lightManager.animate(this.data.animAlpha)
+    if (this.data.animAlpha <= 1) {
+      this.objects.forEach((object) => {
+        object.animate(this.data.animAlpha);
+      });
+      this.GLTFObjects.forEach((object) => {
+        object.animate(this.data.animAlpha);
+      });
+      this.lightManager.animate(this.data.animAlpha);
+    }
     super.tick(time);
   }
 
   endScene() {
-
-    this.lightManager;
+    // this.data.ambientLightIntensity = 0;
+    this.rebuildObjectsFromData();
+    this.data.animAlpha = 2;
+    this.lightManager.endScene();
   }
 }
