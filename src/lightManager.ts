@@ -1,6 +1,7 @@
 import { lerp } from "three/src/math/MathUtils.js";
 import { pointLights, ambientLightData } from "./data/lightData";
 import * as THREE from "three";
+import type { EventEmitter } from "./utils/EventEmitter";
 
 export default class LightManager {
   declare scene: THREE.Scene;
@@ -64,6 +65,8 @@ export default class LightManager {
 
   switchLightOn() {
     setTimeout(() => {
+      const eventEmitter: EventEmitter = window.eventEmitter;
+      eventEmitter.emit("onLightToggled");
       this.lights[0].intensity = pointLights[0].intensity;
       this.switchLightOff();
     }, (Math.random() + 1) * 2000);

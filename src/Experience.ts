@@ -26,6 +26,16 @@ export default class Experience extends BaseExperience {
     const wallNormal = textureLoader.load("./textures/wall_nor.jpg");
     const wallArm = textureLoader.load("./textures/wall_arm.jpg");
     const wallMap = textureLoader.load("./textures/wall_diff.jpg");
+    wallArm.wrapS = THREE.RepeatWrapping;
+    wallArm.wrapT = THREE.RepeatWrapping;
+    wallMap.wrapS = THREE.RepeatWrapping;
+    wallMap.wrapT = THREE.RepeatWrapping;
+    wallNormal.wrapS = THREE.RepeatWrapping;
+    wallNormal.wrapT = THREE.RepeatWrapping;
+
+    wallArm.repeat.set(4, 4);
+    wallMap.repeat.set(4, 4);
+    wallNormal.repeat.set(4, 4);
 
     const wallMaterial = new THREE.MeshPhysicalMaterial({
       map: wallMap,
@@ -38,15 +48,6 @@ export default class Experience extends BaseExperience {
     const floorNormal = textureLoader.load("./textures/floor_nor.jpg");
     const floorArm = textureLoader.load("./textures/floor_arm.jpg");
     const floorMap = textureLoader.load("./textures/floor_diff.jpg");
-
-    const floorMaterial = new THREE.MeshPhysicalMaterial({
-      map: floorMap,
-      normalMap: floorNormal,
-      aoMap: floorArm,
-      metalnessMap: floorArm,
-      roughnessMap: floorArm,
-    });
-
     floorArm.wrapS = THREE.RepeatWrapping;
     floorArm.wrapT = THREE.RepeatWrapping;
     floorMap.wrapS = THREE.RepeatWrapping;
@@ -57,6 +58,14 @@ export default class Experience extends BaseExperience {
     floorArm.repeat.set(10, 10);
     floorMap.repeat.set(10, 10);
     floorNormal.repeat.set(10, 10);
+
+    const floorMaterial = new THREE.MeshPhysicalMaterial({
+      map: floorMap,
+      normalMap: floorNormal,
+      aoMap: floorArm,
+      metalnessMap: floorArm,
+      roughnessMap: floorArm,
+    });
 
     this.uniforms = {
       animAlpha: { value: this.data.animAlpha },
@@ -144,7 +153,7 @@ export default class Experience extends BaseExperience {
 
     const wallGeometry = new THREE.PlaneGeometry(60, 60, 10, 10);
     const wall = new SceneObject(
-      { x: 0, y: 0, z: -5 },
+      { x: 0, y: 0, z: -3 },
       { x: 0, y: 0, z: 0 },
       { x: 1, y: 1, z: 1 },
       wallGeometry,
@@ -254,6 +263,8 @@ export default class Experience extends BaseExperience {
       .max(20)
       .step(0.1)
       .onChange(() => this.rebuildObjectsFromData());
+
+    this.gui.hide();
   }
 
   rebuildObjectsFromData(): void {

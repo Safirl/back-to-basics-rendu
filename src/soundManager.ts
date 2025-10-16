@@ -30,13 +30,15 @@ export default class SoundManager {
     emitter.on("onEndScene", () => {
       this.playEndScene();
     });
+    emitter.on("onLightToggled", () => {
+      this.playLightFX();
+    });
     this.audioLoader.load("./sound/nightmare.mp3", (buffer) => {
       this.currentMusic.setBuffer(buffer);
     });
   }
 
   playIntro() {
-    console.log("intro");
     this.audioLoader.load("./sound/car.mp3", (buffer) => {
       this.currentAudio.setBuffer(buffer);
       this.currentAudio.setLoop(false);
@@ -46,10 +48,7 @@ export default class SoundManager {
   }
 
   sceneLoaded() {
-    console.log("sceneLoaded");
     if (this.currentAudio.isPlaying) {
-      console.log("current audio is playing");
-
       const volume = { value: this.currentAudio.getVolume() };
       gsap.to(volume, {
         value: 0,
@@ -102,17 +101,27 @@ export default class SoundManager {
     this.currentMusic.setLoop(false);
     this.currentMusic.setVolume(1);
     this.currentMusic.play();
+    //preload sound
+    this.audioLoader.load("./sound/ampouleBrise.mp3", (buffer) => {
+      this.currentSFX.setBuffer(buffer);
+      this.currentSFX.setLoop(false);
+      this.currentSFX.setVolume(2);
+    });
   }
 
   playEndScene() {
     if (this.currentMusic.isPlaying) {
       this.currentMusic.stop();
     }
-    // this.audioLoader.load("./sound/nightmare.mp3", (buffer) => {
-    //   this.currentMusic.setBuffer(buffer);
-    //   this.currentMusic.setLoop(false);
-    //   this.currentMusic.setVolume(0.8);
-    //   this.currentMusic.play();
-    // });
+    this.currentSFX.play();
+  }
+
+  playLightFX() {
+    this.audioLoader.load("./sound/light1.mp3", (buffer) => {
+      this.currentSFX.setBuffer(buffer);
+      this.currentSFX.setLoop(false);
+      this.currentSFX.setVolume(1);
+      this.currentSFX.play();
+    });
   }
 }
