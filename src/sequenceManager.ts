@@ -120,5 +120,6 @@ export default class SequenceManager {
     setEndScene() {
         document.removeEventListener("click", this.boundChangeChanel)
         this.eventEmitter.emit("onEndScene")
+        this.experience.endScene()
     }
 }

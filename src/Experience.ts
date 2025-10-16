@@ -272,6 +272,12 @@ export default class Experience extends BaseExperience {
     this.GLTFObjects.forEach((object) => {
       object.animate(this.data.animAlpha);
     });
+    this.lightManager.animate(this.data.animAlpha)
     super.tick(time);
+  }
+
+  endScene() {
+
+    this.lightManager;
   }
 }
