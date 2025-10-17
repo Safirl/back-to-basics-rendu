@@ -4,6 +4,7 @@ import { OrbitControls } from "three/examples/jsm/Addons.js";
 import GUI from "lil-gui";
 import LightManager from "./lightManager";
 import SoundManager from "./soundManager";
+import ComposerManager from "./composeManager";
 
 export default class BaseExperience {
   declare canvas: HTMLCanvasElement;
@@ -17,8 +18,9 @@ export default class BaseExperience {
   declare pointLight: THREE.PointLight;
   declare lightManager: LightManager;
   declare soundManager: SoundManager;
+  declare composerManager: ComposerManager
 
-  constructor() {}
+  constructor() { }
 
   createScene() {
     this.canvas = document.querySelector("canvas.webgl") as HTMLCanvasElement;
@@ -67,6 +69,16 @@ export default class BaseExperience {
       1000
     );
     this.camera.position.set(0, 2, 6);
+    window.addEventListener("keydown", (event) => {
+      if (event.key == "f") {
+        if (!document.fullscreenElement) {
+          document.body.requestFullscreen()
+        }
+        else {
+          document.exitFullscreen()
+        }
+      }
+    })
 
     //@ts-ignore
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas });
@@ -75,25 +87,13 @@ export default class BaseExperience {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+    this.composerManager = new ComposerManager(this.renderer, this.camera, this.scene)
+
     //Create orbit controls
     if (this.data.enableOrbit) {
       this.controls = new OrbitControls(this.camera, this.renderer.domElement);
       this.controls.enableDamping = true;
     }
-
-    //Create ambient light
-
-    //Create a point light
-    // this.pointLight = new THREE.PointLight(
-    //   "#ffc25b",
-    //   this.data.pointLightIntensity
-    // );
-    // // x: -5, y: -1.5, z: 0
-    // this.pointLight.position.y = 5;
-    // this.pointLight.position.x = -5;
-    // this.pointLight.position.z = 0;
-    // this.pointLight.castShadow = true;
-    // this.scene.add(this.pointLight);
 
     this.lightManager = new LightManager(this.scene, this.data);
     this.soundManager = new SoundManager();
@@ -145,6 +145,6 @@ export default class BaseExperience {
     if (this.data.enableOrbit) {
       this.controls.update();
     }
-    this.renderer.render(this.scene, this.camera);
+    this.composerManager.tick()
   }
 }

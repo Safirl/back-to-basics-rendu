@@ -286,12 +286,12 @@ export default class Experience extends BaseExperience {
         object.animate(this.data.animAlpha);
       });
       this.lightManager.animate(this.data.animAlpha);
+      this.composerManager.animate(this.data.animAlpha)
     }
     super.tick();
   }
 
   endScene() {
-    // this.data.ambientLightIntensity = 0;
     this.rebuildObjectsFromData();
     this.data.animAlpha = 2;
     this.lightManager.endScene();

@@ -27,6 +27,8 @@ export default class Dialogue {
         textElem.style.fontSize = "24px"
         textElem.innerHTML = text
         textElem.style.userSelect = "none"
+        textElem.style.maxWidth = "450px"
+        textElem.style.textAlign = "center"
         this.container.append(textElem)
     }
 }
