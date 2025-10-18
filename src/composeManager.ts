@@ -6,7 +6,6 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { RGBShiftShader } from "three/addons/shaders/RGBShiftShader.js";
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
 import * as THREE from "three"
-import GUI from 'lil-gui';
 
 export default class ComposerManager {
     declare renderer: THREE.WebGLRenderer
@@ -17,7 +16,7 @@ export default class ComposerManager {
     declare rgbShift: ShaderPass
     declare data: any
 
-    constructor(renderer: THREE.WebGLRenderer, camera: THREE.PerspectiveCamera, scene) {
+    constructor(renderer: THREE.WebGLRenderer, camera: THREE.PerspectiveCamera, scene: any) {
         //@ts-ignore
         this.renderer = renderer
         this.scene = scene
@@ -53,11 +52,6 @@ export default class ComposerManager {
     }
 
     addGUI() {
-        this.gui
-            .add(this.data, "zoomFactor")
-            .min(-10)
-            .max(20)
-            .step(0.1)
-            .onChange(() => this.rebuildObjectsFromData());
+
     }
 }
